@@ -2,4 +2,8 @@
 
 *Work in progress*
 
-I plan to upload my julia code here.
+The plots are generated using Gadfly. To make sure all the correct packages are installed run 
+
+```shell
+julia install.jl
+```
