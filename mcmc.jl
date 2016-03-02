@@ -42,7 +42,7 @@ function Distrib(x)
    up   =   y[int(0.8413*length(y))]
    down =   y[int(0.1587*length(y))]
    med  =   y[int(0.5*length(y))]
-   return med,up,down   
+   return [med up down]   
 end
 
 function PrintUncertainties(chain,P,S)
@@ -51,18 +51,56 @@ function PrintUncertainties(chain,P,S)
   println("====================================")
   for i = 1:length(P)
     if S[i] != 0
-      #println("\n\t\t+ ",Distrib(chain[:,P[i]])[1]
-      #println(chain)
-      println("her")
-      println(i)
-      println(P)
-      println(P[i])
-      println(chain[P[i],:])
-      #println(Distrib(chain[:,P[i]]))
-      #println("\t\t$(Distrib(chain[:,P[i]])[2])\n"
+      println("\t\t+$(round(Distrib(chain[:,P[i]])[1],5))")
+      println(round(Distrib(chain[:,P[i]])[1],5))
+      println("\t\t-$(round(Distrib(chain[:,P[i]])[3],5))")
     end
   end
   println("====================================")
+end
+
+function PlotChain(chain,P,S)
+
+  x = chain[:,P[1]]
+  y = chain[:,P[2]]
+  
+  fig = figure()
+
+  hist2d(x=x,y=y)
+  show()
+  #=
+  # Top plot
+  #top = subplot2grid((3,3), (0, 0), colspan=2)
+  hist(chain[:,P[1]],bins=30)
+  #axvline(Distrib(chain[:,P[0]])[0],color="red",lw=2)
+  #axvline(Distrib(chain[:,P[0]])[1],color="red",lw=2,linestyle='--')
+  #axvline(Distrib(chain[:,P[0]])[2],color="red",lw=2,linestyle='--')
+  #top.get_xaxis().set_ticklabels([])
+  minorticks_on()
+
+
+  # Right hand side plot
+  right = plt.subplot2grid((3,3), (1, 2), rowspan=2)
+  right.hist(chain[:,P[1]],orientation='horizontal',bins=30)
+  plt.axhline(Distrib(chain[:,P[1]])[0],color="red",lw=2)
+  plt.axhline(Distrib(chain[:,P[1]])[1],color="red",lw=2,linestyle='--')
+  plt.axhline(Distrib(chain[:,P[1]])[2],color="red",lw=2,linestyle='--')
+  right.get_yaxis().set_ticklabels([])
+  right.xaxis.set_major_locator(LinearLocator(5))
+  plt.minorticks_on()
+  
+  # Center plot
+  center = plt.subplot2grid((3,3), (1, 0), rowspan=2, colspan=2)
+  center.hist2d(chain[:,P[0]],chain[:,P[1]],bins=30)
+  plt.minorticks_on()
+  
+  # Corner plot
+  corner = plt.subplot2grid((3,3), (0, 2))
+  corner.get_xaxis().set_ticklabels([])
+  corner.get_yaxis().set_ticklabels([])
+  corner.plot(chain[:,P[0]],chain[:,P[1]],'-k')
+  plt.minorticks_on()
+  =#
 end
 
 function MCMC(X,F,P,S,C)
@@ -98,7 +136,6 @@ function MCMC(X,F,P,S,C)
         end
         moves += moved
         chain[i,:] = P
-
     end
     println("\nAccepted steps: $(100.*(moves/C)) %")
     return chain, moves
@@ -119,19 +156,16 @@ X       = GenFakeData(100,F,Pfake,0.1)
 
 chain, moves   = MCMC(X,F,Pin,step,C)
 Pout    = chain[moves,:]
-println(Pout)
+#println(Pout)
 
-P_plot = [0 1]
+P_plot = [1 2]
 PrintUncertainties(chain,P_plot,step)
+#using Plotly
+#PlotChain(chain,P_plot,step)
 
-x = X[1,:]
-y = X[2,:]
 
-# Uncomment these to install the plotting packages
-#Pkg.update()
-#Pkg.add("Gadfly")
-#Pkg.add("Cairo")
 
-using Gadfly
-myplot = plot(x=x, y=y,Guide.xlabel("Stimulus"), Guide.ylabel("Response"))
-draw(PDF("function.pdf", 4inch, 3inch), myplot)
+#x = X[1,:]
+#y = X[2,:]
+
+
